@@ -1,0 +1,31 @@
+#application: ice-d-x-octopus
+#version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /robots.txt
+  static_files: robots.txt
+  upload: robots.txt
+  
+- url: /favicon.ico
+  static_files: favicon.ico
+  upload: favicon.ico
+
+- url: /css
+  static_dir: css
+  
+- url: /img
+  static_dir: img
+
+- url: /.*
+  script: octopus.application
+  
+libraries:
+- name: webapp2
+  version: latest
+
+- name: MySQLdb
+  version: latest
+  

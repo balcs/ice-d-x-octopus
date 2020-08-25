@@ -1,0 +1,93 @@
+/* basic elements */
+html {
+	margin: 0;
+	padding: 0;
+	}
+body { 
+	font: normal normal bold 12px "Arial", sans-serif;
+	color: #444444;
+	background-color: #EEEEEE;
+	margin: 10; 
+	padding: 10;
+	}
+p { 
+	margin-top: 0; 
+	text-align: justify;
+	margin-bottom: 5px;
+	}
+h3 { 
+	font: normal normal 14px "Arial Black", sans-serif;
+	margin-bottom: 10px; 
+	text-align: justify;
+	}
+a:link { 
+	font-weight: bold; 
+	text-decoration: none; 
+	color: #6666DF;
+	}
+a:visited { 
+	font-weight: bold; 
+	text-decoration: none; 
+	color: #4444DF;
+	}
+	
+/* These elements make up the page header */
+	
+hf1 {
+	font: normal normal 65px/65px "Arial Black", sans-serif;
+	color: #444444;
+	position: relative;
+	bottom: 2px;
+	}	
+	
+hf2 {
+	font: normal normal 14px/14px "Arial Black", sans-serif;
+	color: #AAAAAA;
+	}	
+	
+hf3 {
+	font: normal normal 65px/65px "Arial Black", sans-serif;
+	color: #666666;
+	position: relative;
+	bottom: 2px;
+	}
+hf3a {
+	font: normal normal 32px/32px "Arial Black", sans-serif;
+	color: #666666;
+	position: relative;
+	bottom: 2px;
+	}	
+	
+
+
+/* divs */
+
+#header {
+	padding: 5px;
+	height: 80px;
+	width: 1000px;
+	/* border-style: solid;
+	border-color: #CCCCCC;
+	border-width: 3px; */
+	}
+
+#main {
+	padding: 5px;
+	width: 1000px;
+	}
+
+
+/* classes for table elements */ 
+/* if no class specified presumably inherits body above */
+
+.h3 { 
+	font: normal normal 16px Arial, sans-serif;
+	margin-bottom: 10px; 
+	text-align: justify;
+	}
+
+.standard {
+	font: normal normal 12px Arial, sans-serif;
+	} 
+
+
