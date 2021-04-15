@@ -39,9 +39,9 @@ def begin_page(name_string):
 	# section adding support page
 	str = str + '<center><table width=1000>'
 	str = str + '<tr><td><hr></td></tr>'
-	str = str + '<tr><td bgcolor=#D0D0FF class=standard><b>The ICE-D project needs your support.</b> Click'
-	str = str + '<a href="http://www.ice-d.org/support">'
-	str = str + ' here </a> to help. </td></tr>'
+	str = str + '<tr><td bgcolor=#D0D0FF class=standard>The ICE-D project is hiring a <b>software developer</b> (now) and a <b>postdoctoral researcher</b> (soon). Click'
+	str = str + '<a href="http://www.ice-d.org/hiring">'
+	str = str + ' here </a> for information. </td></tr>'
 	str = str + '<tr><td><hr></td></tr><table></center>'
 
 	str = str + "<table class=standard width=1000>"
@@ -58,7 +58,9 @@ def begin_page(name_string):
 # Function to end HTML
 def end_page():
 	str = '<center><table width=1000 class=standard> \
-		<tr><td align=left><a href="https://www.geochronology-discuss.net/gchron-2020-6/">A paper</a> describing what the ICE-D project is supposed to be about.</td></tr> \
+		<tr><td align=left><a href="https://gchron.copernicus.org/articles/2/169/2020/" target=blank>A paper</a> describing what the ICE-D project is supposed to be about.</td></tr> \
+		<tr><td><hr></td></tr> \
+		<tr><td align=left><a href="http://www.ice-d.org/support">How</a> the ICE-D project is supported.</td></tr> \
 		<tr><td><hr></td></tr> \
 		<tr><td align=left> \
 		<p>Questions about this page: <a href=\"mailto:balcs@bgc.org\">Greg Balco</a></p> \
