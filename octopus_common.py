@@ -39,9 +39,7 @@ def begin_page(name_string):
 	# section adding support page
 	str = str + '<center><table width=1000>'
 	str = str + '<tr><td><hr></td></tr>'
-	str = str + '<tr><td bgcolor=#D0D0FF class=standard>The ICE-D project is now hiring a <b>postdoctoral researcher</b>. Click'
-	str = str + '<a href="http://www.ice-d.org/hiring">'
-	str = str + ' here </a> for information. </td></tr>'
+	str = str + '<tr><td class=standard></td></tr>'
 	str = str + '<tr><td><hr></td></tr><table></center>'
 
 	str = str + "<table class=standard width=1000>"
