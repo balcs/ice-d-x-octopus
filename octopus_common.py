@@ -56,9 +56,7 @@ def begin_page(name_string):
 # Function to end HTML
 def end_page():
 	str = '<center><table width=1000 class=standard> \
-		<tr><td align=left><a href="https://gchron.copernicus.org/articles/2/169/2020/" target=blank>A paper</a> describing what the ICE-D project is supposed to be about.</td></tr> \
-		<tr><td><hr></td></tr> \
-		<tr><td align=left><a href="http://www.ice-d.org/support">How</a> the ICE-D project is supported.</td></tr> \
+		<tr><td align=left>The ICE-D project now has an <a href="http://wiki.ice-d.org"> partially complete documentation wiki</a>.</td></tr> \
 		<tr><td><hr></td></tr> \
 		<tr><td align=left> \
 		<p>Questions about this page: <a href=\"mailto:balcs@bgc.org\">Greg Balco</a></p> \
