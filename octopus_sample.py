@@ -8,20 +8,21 @@ import octopus_common
 
 class octopus_sample:
 	def __init__(self,db,sample_name):
-		# sample name is the octopus sample name
-		# db is the octopus database
+		# The class initializes by asking the WFS for all information about a particular 
+		# sample. 
+		# Input arg sample_name is the sample name in OCTOPUS
+		# Input arg db is the octopus database/"coverage"/whatever
 		# both strings
 		
 		self.sample_name = sample_name
 		self.error = False
 		self.errortext = ''
 
-		# Define possible no data fields
+		# Define possible no data fields. This is used later to identify when there is nothing in a field.
 		self.nodatas = ('-9999.0','-9999.99','-9.999','NA','-99.999','-9.9999','-9.99999','9999.0','-9.99','ND')
 		
 		
 		# Acquire XML for sample from WFS
-		# Acquire sample data
 		get_data_URL = ("https://earth.uow.edu.au/geoserver/wfs?service=wfs&version=2.0.0&request=GetFeature&typeName=be10-denude:" + db + "&CQL_FILTER=smpid1='" + sample_name +"'")     
               
 		try:
@@ -36,8 +37,7 @@ class octopus_sample:
 			rr = e.reason
 			error = True	
 
-		# Assuming no error, parse XML
-
+		# Handle several foreseeable errors
 		if error is True:
 			# Case URL read error
 			self.datadict = {}
@@ -56,7 +56,7 @@ class octopus_sample:
 			self.errortext = rr
 		else:
 			# Case everything fine		
-			# parse XML to a dict and make HTML table
+			# parse XML to a dict (self.datadict) and make HTML table (self.tablestr) at the same time
 			toplevel = ET.fromstring(rr)
 			itertag = toplevel[0].tag
 			self.datadict = {}
@@ -86,16 +86,17 @@ class octopus_sample:
 
 			self.tablestr = self.tablestr + "</table>"
 
-
+	# This method just spits out everything in the dict as text. 
 	def dump(self):
 		for entry in self.datadict:
 			print(entry)
 
-
+	# This method computes the centroid of the drainage basin. 
 	def centroid(self):
 		if len(self.datadict) > 0:
 			# This crunches the long text string giving the polygon boundary.
 			# We now have to split the polygon text into x and y. 
+			# The summation formula is from the Wikipedia article about centroids. 
 			polygon_float = [float(i) for i in self.regiontext.split()]
 			s1 = 0.0
 			s2 = 0.0
@@ -115,18 +116,22 @@ class octopus_sample:
 			area = 0.5*s1
 			cx = (1/(6*area))*s2
 			cy = (1/(6*area))*s3
+
 			# Now convert to lat,long
+			# This appears to be a formula for a spherical Mercator projection, 
+			# which is what the WFS says it is using. Correct? Who knows. 
 			lon = math.degrees(cx/6378137)
 			lat = math.degrees(2.*math.atan(math.exp(cy/6378137)) - (math.pi/2))
 			
 			
 			ll = [lat,lon]
 		else:
+			# Case there is nothing in the datadict, return zeros. 
 			ll = [0,0]
 			
 		return ll
 
-
+	# This method generates properly formatted input for the online erosion rate calculator. 
 	def v3_input(self):
 		#  Now make v3 input string
 		if len(self.datadict) > 0:
@@ -135,7 +140,9 @@ class octopus_sample:
 			bestd = octopus_common.get_Be_std(self.datadict['bestnd'])			
 			alstd = octopus_common.get_Al_std(self.datadict['alstnd'])
 			
-
+			# Note: this generates unprocessable data for a number of samples that have 
+			# various errors and omissions. Could benefit from more conditionals to handle 
+			# missing data. 
 			ll = self.centroid()
 			v3str = self.datadict['smpid1'] + " " + format(ll[0]) + " " + format(ll[1]) + " " + self.datadict['elev_ave'] + " std 0 2.7 1 0 " + format(pubyear-2,'0.0f') + ";\n"
 			okv3 = False		
@@ -155,7 +162,8 @@ class octopus_sample:
 
 		return v3str
 
-
+	# This method generates a little HTML table containing the erosion rates that are 
+	# recorded in the OCTOPUS database, that is, the ones that were generated with CAIRN.
 	def sample_erates_HTML(self):	
 		s = ''
 		isData = False

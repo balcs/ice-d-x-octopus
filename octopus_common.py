@@ -11,7 +11,7 @@ import urllib
 import xml.etree.ElementTree as ET
 
 
-# Leading HTML
+# This function generates leading HTML for all pages
 def begin_page(name_string):
 
 	str =  '<html><head> \
@@ -53,7 +53,7 @@ def begin_page(name_string):
 	return str
 
 
-# Function to end HTML
+# This function generates trailing HTML footer for all pages
 def end_page():
 	str = '<center><table width=1000 class=standard> \
 		<tr><td align=left>The ICE-D project now has a <a href="http://wiki.ice-d.org"> partially complete documentation wiki</a>.</td></tr> \
@@ -65,6 +65,8 @@ def end_page():
 	
 	return str
 
+# This function sends a text string to the online erosion rate calculator and obtains 
+# an XML result. 
 def get_ages_v3(s):
 	# arg s is the text string to send to the calculator...
 	# assemble form data
@@ -72,17 +74,20 @@ def get_ages_v3(s):
 		"mlmfile" : "erosion_input_v3",
 		"reportType" : "XML",
 		"resultType" : "long",
-		# "summary" : "yes", # This has to be switched depending on site type -- ? 
+		# "summary" : "yes", # This doesn't do anything for erosion rates 
 		"plotFlag" : "no",
 		"text_block" : s }
 	form_data = urllib.urlencode(form_fields)
 	
 	if (os.getenv('SERVER_SOFTWARE') and os.getenv('SERVER_SOFTWARE').startswith('Google App Engine/')):
+		# Case running on GAE as normal, use hess or stoneage servers
 		full_url = "http://hess.ess.washington.edu/cgi-bin/matweb"
 		#full_url = "http://stoneage.ice-d.org/cgi-bin/matweb" 
 	else:
-		# Local VM on GB's laptop
-		full_url = "http://192.168.56.101/cgi-bin/matweb"
+		# Case running on GB's laptop - use local VM
+		# Note: has to be running
+		#full_url = "http://192.168.56.101/cgi-bin/matweb"
+		full_url = "http://stoneage.ice-d.org/cgi-bin/matweb"
 
 	try:
 		req = urllib2.Request(full_url,form_data)
@@ -94,12 +99,13 @@ def get_ages_v3(s):
 		rr = e.reason
 	# return...
 	return rr
-	
+
+# This function converts the XML returned from the E.R.C. into a HTML table. 	
 def XMLtoTable_v3(x):
 	# arg x is the XML string from v3 online calculator
-	# This has to format the age results as well as embed the plots...
-	# but that will require some rewrite of the MATLAB code. 
-	# Detect errors by looking for <calcs_v3_age_data> tag. 
+	# Detect errors by looking for <calcs_v3_age_data> tag - this is taking advantage of 
+	# a bug in the E.R.C. in which the error handler doesn't distinguish between exposure
+	# age and erosion rate requests. 
 
 	
 	if "<calcs_v3_erosion_data>" in x:
@@ -159,6 +165,7 @@ def XMLtoTable_v3(x):
 def get_Al_std(in_std):
 	# Looks up a standard name that occurs in the Octopus DB and maps it to something 
 	# that the online exposure age calculator recognizes. Otherwise returns 'unknown'.
+	# This is needed by one of the octopus_sample methods. 
 	std_dict = {'KN01-X-Y':'Unknown',
 		'KNSTD':'KNSTD',
 		'KNSTD-Assumed':'KNSTD',
@@ -181,6 +188,8 @@ def get_Al_std(in_std):
 def get_Be_std(in_std):
 	# Looks up a standard name that occurs in the Octopus DB and maps it to something 
 	# that the online exposure age calculator recognizes. Otherwise returns 'unknown'.
+	# This is needed by one of the octopus_sample methods. Unclear why the OCTOPUS folks
+	# didn't just use the standard nomenclature from the online exposure age calculators.
 	std_dict = {'07KNSTD':'07KNSTD',
 		'07KNSTD-Assumed':'07KNSTD',
 		'07KNSTD3110':'07KNSTD',

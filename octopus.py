@@ -1,5 +1,8 @@
 # Notes:
 
+# This doesn't use templating, it just writes straight HTML to output. Obviously, it 
+# should use templating instead. Also, The HTML is very table-based and quite hokey. 
+
 # ------------------------- imports -------------------------------------------------
 
 import cgi
@@ -15,6 +18,7 @@ import octopus_sample
 import octopus_common
 			
 # ----------- Class MainPage displays front page of database -----------------------------
+# This doesn't do anything except for write a bunch of HTML.
 
 class MainPage(webapp2.RequestHandler):
 	def get(self):
@@ -39,6 +43,8 @@ class MainPage(webapp2.RequestHandler):
 
 
 # ----------- Class DBpage displays list of studies in a database ------------------------
+# This queries the OCTOPUS WFS feed to obtain a list of "studies". Each "study" in OCTOPUS
+# is basically just a publication. 
 
 class DBPage(webapp2.RequestHandler):
 	def get(self,db):
@@ -50,6 +56,7 @@ class DBPage(webapp2.RequestHandler):
 		self.response.write("<td width=150></td>")
 		self.response.write("<td align=left valign=middle>")
 		
+		# This checks to make sure it is part of one of the "coverages" that exist
 		if db not in ['crn_int_basins','crn_aus_basins','crn_inprep_basins','crn_xxl_basins']:
 			self.response.write("<p>Can't find database -- ?</p>")
 			self.response.write("</td></tr><tr><td colspan=3><hr></td></tr></table>")
@@ -57,9 +64,12 @@ class DBPage(webapp2.RequestHandler):
 			return
 
 			
-        # Acquire list of studies
+        # Acquire list of studies for this database/"coverage"
+		# I think what this actually does is list all samples with their "study" field, so 
+		# there is a lot of redundant information. 
 		get_studies_URL = ("https://earth.uow.edu.au/geoserver/wfs?service=wfs&version=2.0.0&request=GetFeature&typeName=be10-denude:" + db + "&propertyName=studyid,auth,pubyear,refid,refdoi&sortby=pubyear")     
  
+		# Talk to WFS server and get response
 		try:
 			req = urllib2.Request(get_studies_URL)
 			r = urllib2.urlopen(req,None,60)
@@ -72,6 +82,7 @@ class DBPage(webapp2.RequestHandler):
 			rr = e.reason
 			isexception = True
 		
+		# Handle a couple of common errors. This is not comprhensive. 
 		if isexception is True:	
 			self.response.write("<p>URL get exception: " + rr + ".</p>")
 			self.response.write("</td></tr><tr><td colspan=3><hr></td></tr></table>")
@@ -84,24 +95,30 @@ class DBPage(webapp2.RequestHandler):
 			self.response.write(octopus_common.end_page())
 			return
 		
-		# parse XML
+		# Assuming request was successful - now parse XML response
 		toplevel = ET.fromstring(rr)
 		itertag = toplevel[0].tag
 		
-		# This is fairly specific to the exact XML. Could be improved. But the idea is to 
-		# write a description line of each study exactly once. 
-		self.response.write("<p>Studies in database <b>" + db + ":</b></p>")
+		# All the following code is extremely specific to the exact XML that we expect
+		# to see, so it will break if the XML is changed or has something unexpected.
+		# Could be improved. 
+		# Anyway, the idea is to wade through all the samples and exctract the "study" 
+		# fields, but write a description line for each study exactly once. 
 
+		self.response.write("<p>Studies in database <b>" + db + ":</b></p>")
 		self.response.write("<table class=standard><tr><td width=100 align=center><b>List of samples<br>in this study:</b></td>")
 		self.response.write("<td align=center width=80><b>Publication<br>year</b></td>")
 		self.response.write("<td width=120><b>Author</b></td>")
 		self.response.write("<td><b>Journal</b></td>")
 		self.response.write("<td><b>DOI</b></td></tr>")
+		# What this actually does is keep executing comparisons against a list that grows
+		# every time a new item is identified. This probably isn't very efficient. 
 		study_ids = []
 		itername = "{be10-denude}" + db
 		for this_member in toplevel.iter(itertag):
 			for this_study in this_member.iter(itername):
 				this_study_id = this_study.find('{be10-denude}studyid').text
+				# Check if we've seen this study before
 				if this_study_id not in study_ids:
 					self.response.write("<td align=center>")
 					self.response.write("<a href=\"/study/" + db + "/" + this_study_id + "\">")
@@ -125,7 +142,8 @@ class DBPage(webapp2.RequestHandler):
 					else: 
 						self.response.write(DOIstr)
 										
-					self.response.write("</td></tr>")				
+					self.response.write("</td></tr>")	
+					# Add it to the list			
 					study_ids.append(this_study_id)
 			       
 		self.response.write("</table>")  
@@ -150,6 +168,7 @@ class BadURLErrorPage(webapp2.RequestHandler):
 		self.response.write(octopus_common.end_page())
 
 # ------------- Class StudyPage displays all samples in a study ---------------
+# This asks the WFS for all samples that have a specific studyid element. 
         
 class StudyPage(webapp2.RequestHandler):
 	def get(self,db,study):
@@ -168,6 +187,7 @@ class StudyPage(webapp2.RequestHandler):
 			return
 
 		if len(study) > 8:
+			# What error is this supposed to deal with? 
 			self.response.write("<p>Nonexistent study ID -- ?</p>")
 			self.response.write("</td></tr><tr><td colspan=3><hr></td></tr></table>")
 			self.response.write(octopus_common.end_page())
@@ -188,6 +208,7 @@ class StudyPage(webapp2.RequestHandler):
 			rr = e.reason
 			isexception = True
 		
+		# Handle several foreseeable errors
 		if isexception is True:	
 			self.response.write("<p>URL get exception: " + rr + ".</p>")
 			self.response.write("</td></tr><tr><td colspan=3><hr></td></tr></table>")
@@ -213,11 +234,13 @@ class StudyPage(webapp2.RequestHandler):
 		self.response.write("<table class=standard><tr><td align=center valign=bottom width=130><b>OCTOPUS sample ID</b><br>(link to sample data)</td>")
 		self.response.write("<td align=center valign=bottom width=100><b>Study sample ID</b></td><tr>")		
 		self.response.write("<tr><td></td><td></td></tr>")
+		
 		# parse XML
 
 		toplevel = ET.fromstring(rr)
 		itertag = toplevel[0].tag
 
+		# Iterate through samples and make table
 		last_study_id = ""
 		itername = "{be10-denude}" + db
 		for this_member in toplevel.iter(itertag):
@@ -246,6 +269,10 @@ class StudyPage(webapp2.RequestHandler):
 # should disable erosion rate calcs for 'in prep' database
 # needs more error checking in v3 input assembly
 # don't expect 'xxl' database to produce an erosion rate
+
+# What this does is (i) ask the OCTOPUS WFS for all the info about a given sample; 
+# (ii) reformat it into erosion rate calculator input; (iii) send that to the E.R.C and
+# get a response (hopefully); and (iv) display everything. 
       
 class SamplePage(webapp2.RequestHandler):
 	def get(self,db,sample):
@@ -264,14 +291,16 @@ class SamplePage(webapp2.RequestHandler):
 			return
 
 		if len(sample) > 14:
+			# What error is this supposed to catch? 
 			self.response.write("<p>Nonexistent sample ID -- ?</p>")
 			self.response.write("</td></tr><tr><td colspan=3><hr></td></tr></table>")
 			self.response.write(octopus_common.end_page())
 			return		
 		
-        # Acquire sample data
+        # Acquire sample data as an octopus_sample object
 		this_sample = octopus_sample.octopus_sample(db,sample)	
 		
+		# Deal with easily foreseeable errors
 		if this_sample.error is True:
 			self.response.write("<p>WFS returned no sample:</p>")
 			self.response.write("<p><textarea readonly cols=100 rows=10>" + this_sample.errortext + "</textarea></p>")
@@ -281,6 +310,7 @@ class SamplePage(webapp2.RequestHandler):
 
 		self.response.write("<p><b>ICE-D X OCTOPUS: sample " + sample + "</b></p>")
 
+		# Report erosion rate that is in the OCTOPUS database
 		self.response.write("<hr><p><b>OCTOPUS erosion rate(s)</b>, calculated as described in the OCTOPUS documentation and standardized to 2.7 g/cm3:</p>")
 		if db == "crn_xxl_basins":
 			self.response.write("<blockquote>(not calculated for crn_xxl_basins)</blockquote>")
@@ -288,6 +318,7 @@ class SamplePage(webapp2.RequestHandler):
 			self.response.write("<blockquote>" + this_sample.sample_erates_HTML() + "</blockquote>")
 		
 
+		# Report E.R.C. input data
 		self.response.write("<hr><b><p>Online erosion rate calculator input, version 3:</b></p>")		
 		self.response.write("<blockquote>")
 		
@@ -311,6 +342,7 @@ class SamplePage(webapp2.RequestHandler):
 
 		self.response.write("</blockquote>")
 
+		# Report E.R.C. erosion rate results
 		self.response.write("<hr><p><b>Apparent erosion rate results from v3 online calculator:</b></p>")
 
 		if isV3data:
@@ -319,6 +351,7 @@ class SamplePage(webapp2.RequestHandler):
 		else:
 			self.response.write("<blockquote>(no results for this sample)</blockquote>")
 
+		# Report all data for this sample
 		self.response.write("<hr><p>Complete data dump for sample <b>" + this_sample.sample_name + "</b></p>")
 		self.response.write("<p>For a detailed explanation of what is in each field, look at <a href=\"https://www.earth-syst-sci-data.net/10/2123/2018/essd-10-2123-2018-supplement.pdf\">this link.</a></p><blockquote>")
 
